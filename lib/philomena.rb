@@ -79,7 +79,7 @@ class Philomena
   # @param t [String] tag name, NOT slug.
   # @return [Hashie::Mash, nil] Query result, `nil` if nothing is found.
   def tag(t)
-    tag = get url: "search/tags", query: "q=name:#{CGI.escape(t)}" , filter: @everything_filter
+    tag = get url: "search/tags", query: "q=name:#{CGI.escape(t)}", filter: @everything_filter
     tag.tags[0] if tag
   end
 
