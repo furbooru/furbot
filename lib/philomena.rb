@@ -41,26 +41,6 @@ class Philomena
   private
 
   # @private
-  # Generates a booru slug from name. Removes dangerous characters and encodes the strin as URL component.
-  # @note Stolen from concerns/sluggable.rb
-  # @param name [String] name to generate the slug for.
-  # @return [String] safe name, a slug.
-  def generate_slug(name)
-    new_name = name.dup
-
-    # Escape common punctuation.
-    new_name.gsub!('-', '-dash-')
-    new_name.gsub!('/', '-fwslash-')
-    new_name.gsub!('\\', '-bwslash-')
-    new_name.gsub!(':', '-colon-')
-    new_name.gsub!('.', '-dot-')
-    new_name.gsub!('+', '-plus-')
-
-    # Render into URL encoding. For URLs dipsit.
-    CGI.escape(new_name).gsub('%20', '+')
-  end
-
-  # @private
   # Fetches the API with the given parameters.
   # @param args [Hash] the options for the query.
   # @option args [String] :url the URL to fetch, base URL is automatically prepended.
@@ -99,8 +79,8 @@ class Philomena
   # @param t [String] tag name, NOT slug.
   # @return [Hashie::Mash, nil] Query result, `nil` if nothing is found.
   def tag(t)
-    tag = get url: "tags/#{generate_slug(t)}", filter: @everything_filter
-    tag.tag if tag
+    tag = get url: "search/tags", query: "q=name:#{CGI.escape(t)}" , filter: @everything_filter
+    tag.tags[0] if tag
   end
 
   # Searches for images based on the given query.
@@ -110,7 +90,7 @@ class Philomena
   # @option args [Number] :filter filter ID override.
   # @return [Hashie::Mash, nil] Query result, `nil` if nothing is found.
   def search(**args)
-    get url: 'search/images', query: "q=#{args[:query]}", nsfw: args[:nsfw], filter: args[:filter]
+    get url: 'search/images', query: "q=#{CGI.escape(args[:query])}", nsfw: args[:nsfw], filter: args[:filter]
   end
 
   # Picks a random image from a search query.
@@ -118,7 +98,7 @@ class Philomena
   # @param nsfw [Boolean] Whether to use the NSFW filter or not.
   # @return [Hashie::Mash, nil] Query result, `nil` if nothing is found.
   def random_image(query = 'safe, cute', nsfw = false)
-    img = get(url: 'search/images', query: "q=#{query.present? ? query : 'safe, cute'}&sf=random&per_page=1", nsfw: nsfw)
+    img = get(url: 'search/images', query: "q=#{query.present? ? CGI.escape(query) : 'safe, cute'}&sf=random&per_page=1", nsfw: nsfw)
 
     if img
       img_data = img['images'][0]
